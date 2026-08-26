@@ -9,6 +9,29 @@ const PRIORITY = {
   maintenance:  { bg:"#2e1065", border:"#6b21a8", badge:"#9333ea", text:"#d8b4fe", label:"🟣 MANUTENÇÃO" },
 };
 
+// Cronograma baseado no PDF
+const CRONOGRAMA = [
+  { dia: "Segunda", materias: "História", tempo: "1h30", foco: "PMBA" },
+  { dia: "Terça", materias: "Matemática", tempo: "1h30", foco: "PMBA" },
+  { dia: "Quarta", materias: "Const., Adm., Penal e Militar", tempo: "1h30", foco: "PMBA" },
+  { dia: "Quinta", materias: "Geografia/Atualidades", tempo: "1h30", foco: "PMBA" },
+  { dia: "Sexta", materias: "Português + Informática", tempo: "45min cada", foco: "Manutenção" }
+];
+
+// Matérias disponíveis para o cronômetro
+const MATERIAS_TIMER = [
+  { id: "HIS", name: "História" },
+  { id: "MAT", name: "Matemática" },
+  { id: "CONST", name: "Constitucional" },
+  { id: "ADM", name: "Administrativo" },
+  { id: "PEN", name: "Penal" },
+  { id: "MIL", name: "Penal Militar" },
+  { id: "GEO", name: "Geografia" },
+  { id: "ATU", name: "Atualidades" },
+  { id: "POR", name: "Português" },
+  { id: "INF", name: "Informática" }
+];
+
 const curriculum = [
   // ─── BLOCO 1 ──────────────────────────────────────────────────────
   { bloco:1, id:"historia", name:"História do Brasil e da Bahia", priority:"max", emoji:"🏛️",
@@ -705,13 +728,33 @@ export default function StudyPlan() {
   const [openSubjects, setOpenSubjects] = useState({});
   const [openModules, setOpenModules] = useState({});
 
+  // Estados do Cronômetro
+  const [activeSubject, setActiveSubject] = useState(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [totalTimes, setTotalTimes] = useState({});
+
   useEffect(() => {
     try {
       const r = localStorage.getItem("pmba-v2");
       if (r) setChecked(JSON.parse(r));
+      
+      const t = localStorage.getItem("pmba-timer-v1");
+      if (t) setTotalTimes(JSON.parse(t));
     } catch (e) {}
     setLoaded(true);
   }, []);
+
+  // Lógica do Timer
+  useEffect(() => {
+    let interval;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setSessionTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   const toggle = (key) => {
     const n = { ...checked, [key]: !checked[key] };
@@ -721,7 +764,43 @@ export default function StudyPlan() {
   const toggleSubject = (id) => setOpenSubjects(s => ({ ...s, [id]: !s[id] }));
   const toggleModule = (id) => setOpenModules(m => ({ ...m, [id]: !m[id] }));
 
-  // Previne erros de hydration caso esteja usando framework SSR (como Next.js)
+  // Funções de Controle do Timer
+  const handleStartPause = () => {
+    if (!activeSubject) {
+      alert("Selecione uma matéria primeiro!");
+      return;
+    }
+    setIsRunning(!isRunning);
+  };
+
+  const handleSave = () => {
+    if (!activeSubject) return;
+    setIsRunning(false);
+    
+    const newTotalTimes = {
+      ...totalTimes,
+      [activeSubject]: (totalTimes[activeSubject] || 0) + sessionTime
+    };
+    
+    setTotalTimes(newTotalTimes);
+    setSessionTime(0);
+    try { localStorage.setItem("pmba-timer-v1", JSON.stringify(newTotalTimes)); } catch (e) {}
+  };
+
+  const handleResetSession = () => {
+    setIsRunning(false);
+    setSessionTime(0);
+  };
+
+  const formatTime = (totalSeconds) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, "0")} : ${m.toString().padStart(2, "0")} : ${s.toString().padStart(2, "0")}`;
+  };
+
+  const totalGlobalTime = Object.values(totalTimes).reduce((acc, curr) => acc + curr, 0);
+
   if (!loaded) return null;
 
   // Global stats - IGNORANDO OS AVISOS (⚠️) PARA A CONTAGEM
@@ -736,7 +815,7 @@ export default function StudyPlan() {
   )));
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  // Per-subject stats - IGNORANDO OS AVISOS (⚠️) PARA A CONTAGEM
+  // Per-subject stats
   const subjectStats = {};
   curriculum.forEach(s => {
     let st = 0, sd = 0;
@@ -759,8 +838,9 @@ export default function StudyPlan() {
     ::-webkit-scrollbar{width:6px;}
     ::-webkit-scrollbar-track{background:#1a1a2e;}
     ::-webkit-scrollbar-thumb{background:#3b3b6b;border-radius:3px;}
-    .pulse{animation:pulse 2s infinite;}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
+    .timer-btn{padding:10px 16px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; transition: opacity 0.2s;}
+    .timer-btn:hover{opacity: 0.8;}
+    .subject-pill{padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #334155;}
   `;
 
   return (
@@ -777,10 +857,82 @@ export default function StudyPlan() {
           <p style={{ color: "#94a3b8", fontSize: 13 }}>Cada aula mapeada por assunto e prioridade</p>
         </div>
 
+        {/* Cronograma Semanal */}
+        <div style={{ background: "#1e293b", borderRadius: 12, padding: "16px", marginBottom: 24, border: "1px solid #334155" }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#f1f5f9", marginBottom: 12 }}>📅 Cronograma Semanal</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {CRONOGRAMA.map((item, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", background: "#0f172a", padding: "10px", borderRadius: "8px", fontSize: "13px" }}>
+                <span style={{ fontWeight: "bold", color: "#93c5fd", width: "70px" }}>{item.dia}</span>
+                <span style={{ flex: 1, color: "#e2e8f0" }}>{item.materias}</span>
+                <span style={{ color: "#fbbf24", fontWeight: "bold", marginRight: "10px" }}>{item.tempo}</span>
+                <span style={{ color: "#94a3b8", fontSize: "11px", alignSelf: "center" }}>Foco: {item.foco}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Cronômetro */}
+        <div style={{ background: "#1e293b", borderRadius: 12, padding: "20px", marginBottom: 24, border: "1px solid #334155" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#f1f5f9" }}>⏱️ Cronômetro de Estudos</h2>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ color: "#fbbf24", fontWeight: 800, fontSize: 18 }}>{formatTime(totalGlobalTime)}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>tempo global</div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+            {MATERIAS_TIMER.map(mat => (
+              <div 
+                key={mat.id}
+                onClick={() => {
+                  if (isRunning) handleSave(); // Salva antes de trocar
+                  setActiveSubject(mat.id);
+                }}
+                className="subject-pill"
+                style={{ 
+                  background: activeSubject === mat.id ? "#3b82f6" : "transparent",
+                  color: activeSubject === mat.id ? "#fff" : "#94a3b8",
+                  borderColor: activeSubject === mat.id ? "#3b82f6" : "#334155"
+                }}
+              >
+                {mat.id}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: "#0f172a", borderRadius: 12, padding: "30px", textAlign: "center", border: "1px solid #334155", marginBottom: 16 }}>
+            <div style={{ fontSize: 48, fontWeight: 800, color: activeSubject ? (isRunning ? "#4ade80" : "#f1f5f9") : "#475569", fontFamily: "monospace", letterSpacing: "2px" }}>
+              {formatTime(sessionTime)}
+            </div>
+            <div style={{ color: "#64748b", fontSize: 12, marginTop: 8 }}>
+              {activeSubject ? `Matéria selecionada: ${MATERIAS_TIMER.find(m => m.id === activeSubject)?.name}` : "↑ Selecione uma matéria acima"}
+            </div>
+            {activeSubject && totalTimes[activeSubject] > 0 && (
+              <div style={{ color: "#fbbf24", fontSize: 11, marginTop: 4 }}>
+                Total acumulado na matéria: {formatTime(totalTimes[activeSubject])}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <button className="timer-btn" onClick={handleStartPause} style={{ background: isRunning ? "#f59e0b" : "#3b82f6", color: "#fff", flex: 1, maxWidth: "200px" }}>
+              {isRunning ? "⏸️ PAUSAR" : (sessionTime > 0 ? "▶️ RETOMAR" : "▶️ INICIAR")}
+            </button>
+            <button className="timer-btn" onClick={handleSave} style={{ background: "#10b981", color: "#fff", flex: 1, maxWidth: "200px" }}>
+              💾 SALVAR
+            </button>
+            <button className="timer-btn" onClick={handleResetSession} style={{ background: "#475569", color: "#fff" }}>
+              🔄 RESET
+            </button>
+          </div>
+        </div>
+
         {/* Progress Bar Global */}
         <div style={{ background: "#1e293b", borderRadius: 12, padding: "16px 20px", marginBottom: 24, border: "1px solid #334155" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Progresso Geral</span>
+            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Progresso de Aulas</span>
             <span style={{ color: "#fbbf24", fontWeight: 800, fontSize: 18 }}>{pct}%</span>
           </div>
           <div style={{ background: "#0f172a", borderRadius: 999, height: 12, overflow: "hidden" }}>
@@ -862,7 +1014,6 @@ export default function StudyPlan() {
 
                             {course.modules.map(mod => {
                               const mopen = openModules[mod.id] !== false;
-                              // Aqui os avisos ainda precisam ser desconsiderados para não quebrar a conta menor
                               const mAulasContaveis = mod.aulas.filter(a => !a.startsWith("⚠️"));
                               const mdone = mAulasContaveis.filter(a => checked[`${mod.id}::${a}`]).length;
                               return (
