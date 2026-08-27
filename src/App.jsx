@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const PRIORITY = {
+const PRIORITY: Record<string, { bg: string; border: string; badge: string; text: string; label: string }> = {
   max:          { bg:"#450a0a", border:"#991b1b", badge:"#dc2626", text:"#fca5a5", label:"🔴 MÁXIMA"     },
   high:         { bg:"#431407", border:"#9a3412", badge:"#ea580c", text:"#fdba74", label:"🟠 ALTA"       },
   medium_high:  { bg:"#1c1917", border:"#92400e", badge:"#d97706", text:"#fcd34d", label:"🟡 MÉDIA-ALTA" },
@@ -9,8 +9,27 @@ const PRIORITY = {
   maintenance:  { bg:"#2e1065", border:"#6b21a8", badge:"#9333ea", text:"#d8b4fe", label:"🟣 MANUTENÇÃO" },
 };
 
+const CRONOGRAMA = [
+  { dia: "Segunda", materias: "História", tempo: "1h30", foco: "PMBA" },
+  { dia: "Terça", materias: "Matemática", tempo: "1h30", foco: "PMBA" },
+  { dia: "Quarta", materias: "Const., Adm., Penal e Militar", tempo: "1h30", foco: "PMBA" },
+  { dia: "Quinta", materias: "Geografia/Atualidades", tempo: "1h30", foco: "PMBA" },
+  { dia: "Sexta", materias: "Português + Informática", tempo: "45min cada", foco: "Manutenção" }
+];
+
+const MATERIAS_TIMER = [
+  { id: "HIS", name: "História" },
+  { id: "MAT", name: "Matemática" },
+  { id: "CONST", name: "Constitucional" },
+  { id: "ADM", name: "Administrativo" },
+  { id: "PEN", name: "Penal" },
+  { id: "MIL", name: "Penal Militar" },
+  { id: "GEO", name: "Geografia" },
+  { id: "ATU", name: "Atualidades" },
+  { id: "POR", name: "Português" },
+  { id: "INF", name: "Informática" }
+];
 const curriculum = [
-  // ─── BLOCO 1 ──────────────────────────────────────────────────────
   { bloco:1, id:"historia", name:"História do Brasil e da Bahia", priority:"max", emoji:"🏛️",
     courses:[
       { name:"PM-BA-História_do_Brasil_e_da_Bahia-2023", type:"🎬 Vídeo", modules:[
@@ -43,7 +62,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:1, id:"geografia", name:"Geografia do Brasil", priority:"max", emoji:"🗺️",
     courses:[
       { name:"PM-BA-Geografia_do_Brasil-2023", type:"🎬 Vídeo", modules:[
@@ -118,7 +136,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:1, id:"atualidades", name:"Atualidades", priority:"max", emoji:"🌐",
     courses:[
       { name:"PM-BA-Atualidades-2023", type:"🎬 Vídeo", modules:[
@@ -191,8 +208,6 @@ const curriculum = [
       ]},
     ]
   },
-
-  // ─── BLOCO 2 ──────────────────────────────────────────────────────
   { bloco:2, id:"constitucional", name:"Direito Constitucional", priority:"high", emoji:"⚖️",
     courses:[
       { name:"PM-BA-Direito_Constitucional-2023", type:"🎬 Vídeo", modules:[
@@ -264,7 +279,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:2, id:"dh", name:"Direitos Humanos", priority:"high", emoji:"🕊️",
     courses:[
       { name:"PM-BA-Direitos_Humanos-2023", type:"🎬 Vídeo", modules:[
@@ -293,8 +307,6 @@ const curriculum = [
       ]},
     ]
   },
-
-  // ─── BLOCO 3 ──────────────────────────────────────────────────────
   { bloco:3, id:"matematica", name:"Matemática", priority:"max", emoji:"🔢",
     courses:[
       { name:"PM-BA-Matemática-2023", type:"🎬 Vídeo", modules:[
@@ -433,8 +445,6 @@ const curriculum = [
       ]},
     ]
   },
-
-  // ─── BLOCO 4 ──────────────────────────────────────────────────────
   { bloco:4, id:"penal", name:"Direito Penal", priority:"medium_high", emoji:"🔍",
     courses:[
       { name:"PM-BA-Direito_Penal-2023", type:"🎬 Vídeo", modules:[
@@ -492,7 +502,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:4, id:"penal_militar", name:"Direito Penal Militar", priority:"medium_high", emoji:"🎖️",
     courses:[
       { name:"PM-BA-Direito_Penal_Militar-2023", type:"🎬 Vídeo", modules:[
@@ -524,7 +533,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:4, id:"administrativo", name:"Direito Administrativo", priority:"medium", emoji:"🏢",
     courses:[
       { name:"PM-BA-Direito_Administrativo-2023", type:"🎬 Vídeo", modules:[
@@ -571,8 +579,6 @@ const curriculum = [
       ]},
     ]
   },
-
-  // ─── BLOCO 5 ──────────────────────────────────────────────────────
   { bloco:5, id:"portugues", name:"Língua Portuguesa", priority:"maintenance", emoji:"📝",
     courses:[
       { name:"PM-BA-Língua_Portuguesa-2023", type:"🎬 Vídeo", modules:[
@@ -613,7 +619,6 @@ const curriculum = [
       ]},
     ]
   },
-
   { bloco:5, id:"informatica", name:"Informática", priority:"maintenance", emoji:"💻",
     courses:[
       { name:"PM-BA-Informática-2023", type:"🎬 Vídeo", modules:[
@@ -677,8 +682,6 @@ const curriculum = [
       ]},
     ]
   },
-
-  // ─── BLOCO 6 ──────────────────────────────────────────────────────
   { bloco:6, id:"igualdade", name:"Igualdade Racial e de Gênero (Lei 12.288)", priority:"low", emoji:"🤝",
     courses:[
       { name:"Passo Estratégico de Igualdade Racial e de Gênero-2023", type:"📄 PDF", modules:[
@@ -690,7 +693,7 @@ const curriculum = [
   },
 ];
 
-const BLOCO_NAMES = {
+const BLOCO_NAMES: Record<number, string> = {
   1:"🗓️ Bloco 1 — História + Geografia + Atualidades",
   2:"🗓️ Bloco 2 — Direito Constitucional + Direitos Humanos",
   3:"🗓️ Bloco 3 — Matemática (prioridade máxima!)",
@@ -699,32 +702,84 @@ const BLOCO_NAMES = {
   6:"🗓️ Bloco 6 — Legislação Complementar",
 };
 
-export default function StudyPlan() {
-  const [checked, setChecked] = useState({});
+export default function App() {
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
-  const [openSubjects, setOpenSubjects] = useState({});
-  const [openModules, setOpenModules] = useState({});
+  const [openSubjects, setOpenSubjects] = useState<Record<string, boolean>>({});
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
+
+  const [activeSubject, setActiveSubject] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [totalTimes, setTotalTimes] = useState<Record<string, number>>({});
 
   useEffect(() => {
     try {
       const r = localStorage.getItem("pmba-v2");
       if (r) setChecked(JSON.parse(r));
+      
+      const t = localStorage.getItem("pmba-timer-v1");
+      if (t) setTotalTimes(JSON.parse(t));
     } catch (e) {}
     setLoaded(true);
   }, []);
 
-  const toggle = (key) => {
+  useEffect(() => {
+    let interval: any;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setSessionTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
+  const toggle = (key: string) => {
     const n = { ...checked, [key]: !checked[key] };
     setChecked(n);
     try { localStorage.setItem("pmba-v2", JSON.stringify(n)); } catch (e) {}
   };
-  const toggleSubject = (id) => setOpenSubjects(s => ({ ...s, [id]: !s[id] }));
-  const toggleModule = (id) => setOpenModules(m => ({ ...m, [id]: !m[id] }));
+  const toggleSubject = (id: string) => setOpenSubjects(s => ({ ...s, [id]: !s[id] }));
+  const toggleModule = (id: string) => setOpenModules(m => ({ ...m, [id]: !m[id] }));
 
-  // Previne erros de hydration caso esteja usando framework SSR (como Next.js)
+  const handleStartPause = () => {
+    if (!activeSubject) {
+      alert("Selecione uma matéria primeiro!");
+      return;
+    }
+    setIsRunning(!isRunning);
+  };
+
+  const handleSave = () => {
+    if (!activeSubject) return;
+    setIsRunning(false);
+    
+    const newTotalTimes = {
+      ...totalTimes,
+      [activeSubject]: (totalTimes[activeSubject] || 0) + sessionTime
+    };
+    
+    setTotalTimes(newTotalTimes);
+    setSessionTime(0);
+    try { localStorage.setItem("pmba-timer-v1", JSON.stringify(newTotalTimes)); } catch (e) {}
+  };
+
+  const handleResetSession = () => {
+    setIsRunning(false);
+    setSessionTime(0);
+  };
+
+  const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, "0")} : ${m.toString().padStart(2, "0")} : ${s.toString().padStart(2, "0")}`;
+  };
+
+  const totalGlobalTime = Object.values(totalTimes).reduce((acc, curr) => acc + curr, 0);
+
   if (!loaded) return null;
 
-  // Global stats - IGNORANDO OS AVISOS (⚠️) PARA A CONTAGEM
   let total = 0, done = 0;
   curriculum.forEach(s => s.courses.forEach(c => c.modules.forEach(m =>
     m.aulas.forEach(a => {
@@ -736,8 +791,7 @@ export default function StudyPlan() {
   )));
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  // Per-subject stats - IGNORANDO OS AVISOS (⚠️) PARA A CONTAGEM
-  const subjectStats = {};
+  const subjectStats: Record<string, { t: number; d: number }> = {};
   curriculum.forEach(s => {
     let st = 0, sd = 0;
     s.courses.forEach(c => c.modules.forEach(m =>
@@ -759,8 +813,9 @@ export default function StudyPlan() {
     ::-webkit-scrollbar{width:6px;}
     ::-webkit-scrollbar-track{background:#1a1a2e;}
     ::-webkit-scrollbar-thumb{background:#3b3b6b;border-radius:3px;}
-    .pulse{animation:pulse 2s infinite;}
-    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.7;}}
+    .timer-btn{padding:10px 16px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; transition: opacity 0.2s;}
+    .timer-btn:hover{opacity: 0.8;}
+    .subject-pill{padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #334155;}
   `;
 
   return (
@@ -777,10 +832,82 @@ export default function StudyPlan() {
           <p style={{ color: "#94a3b8", fontSize: 13 }}>Cada aula mapeada por assunto e prioridade</p>
         </div>
 
+        {/* Cronograma Semanal */}
+        <div style={{ background: "#1e293b", borderRadius: 12, padding: "16px", marginBottom: 24, border: "1px solid #334155" }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#f1f5f9", marginBottom: 12 }}>📅 Cronograma Semanal</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {CRONOGRAMA.map((item, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", background: "#0f172a", padding: "10px", borderRadius: "8px", fontSize: "13px" }}>
+                <span style={{ fontWeight: "bold", color: "#93c5fd", width: "70px" }}>{item.dia}</span>
+                <span style={{ flex: 1, color: "#e2e8f0" }}>{item.materias}</span>
+                <span style={{ color: "#fbbf24", fontWeight: "bold", marginRight: "10px" }}>{item.tempo}</span>
+                <span style={{ color: "#94a3b8", fontSize: "11px", alignSelf: "center" }}>Foco: {item.foco}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Cronômetro */}
+        <div style={{ background: "#1e293b", borderRadius: 12, padding: "20px", marginBottom: 24, border: "1px solid #334155" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#f1f5f9" }}>⏱️ Cronômetro de Estudos</h2>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ color: "#fbbf24", fontWeight: 800, fontSize: 18 }}>{formatTime(totalGlobalTime)}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>tempo global</div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+            {MATERIAS_TIMER.map(mat => (
+              <div 
+                key={mat.id}
+                onClick={() => {
+                  if (isRunning) handleSave();
+                  setActiveSubject(mat.id);
+                }}
+                className="subject-pill"
+                style={{ 
+                  background: activeSubject === mat.id ? "#3b82f6" : "transparent",
+                  color: activeSubject === mat.id ? "#fff" : "#94a3b8",
+                  borderColor: activeSubject === mat.id ? "#3b82f6" : "#334155"
+                }}
+              >
+                {mat.id}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: "#0f172a", borderRadius: 12, padding: "30px", textAlign: "center", border: "1px solid #334155", marginBottom: 16 }}>
+            <div style={{ fontSize: 48, fontWeight: 800, color: activeSubject ? (isRunning ? "#4ade80" : "#f1f5f9") : "#475569", fontFamily: "monospace", letterSpacing: "2px" }}>
+              {formatTime(sessionTime)}
+            </div>
+            <div style={{ color: "#64748b", fontSize: 12, marginTop: 8 }}>
+              {activeSubject ? `Matéria selecionada: ${MATERIAS_TIMER.find(m => m.id === activeSubject)?.name}` : "↑ Selecione uma matéria acima"}
+            </div>
+            {activeSubject && totalTimes[activeSubject] > 0 && (
+              <div style={{ color: "#fbbf24", fontSize: 11, marginTop: 4 }}>
+                Total acumulado na matéria: {formatTime(totalTimes[activeSubject])}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <button className="timer-btn" onClick={handleStartPause} style={{ background: isRunning ? "#f59e0b" : "#3b82f6", color: "#fff", flex: 1, maxWidth: "200px" }}>
+              {isRunning ? "⏸️ PAUSAR" : (sessionTime > 0 ? "▶️ RETOMAR" : "▶️ INICIAR")}
+            </button>
+            <button className="timer-btn" onClick={handleSave} style={{ background: "#10b981", color: "#fff", flex: 1, maxWidth: "200px" }}>
+              💾 SALVAR
+            </button>
+            <button className="timer-btn" onClick={handleResetSession} style={{ background: "#475569", color: "#fff" }}>
+              🔄 RESET
+            </button>
+          </div>
+        </div>
+
         {/* Progress Bar Global */}
         <div style={{ background: "#1e293b", borderRadius: 12, padding: "16px 20px", marginBottom: 24, border: "1px solid #334155" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Progresso Geral</span>
+            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>Progresso de Aulas</span>
             <span style={{ color: "#fbbf24", fontWeight: 800, fontSize: 18 }}>{pct}%</span>
           </div>
           <div style={{ background: "#0f172a", borderRadius: 999, height: 12, overflow: "hidden" }}>
@@ -819,7 +946,6 @@ export default function StudyPlan() {
                     background: pc.bg, border: `1px solid ${pc.border}`,
                     borderRadius: 12, marginBottom: 12, overflow: "hidden"
                   }}>
-                    {/* Subject header */}
                     <div
                       onClick={() => toggleSubject(s.id)}
                       style={{
@@ -862,7 +988,6 @@ export default function StudyPlan() {
 
                             {course.modules.map(mod => {
                               const mopen = openModules[mod.id] !== false;
-                              // Aqui os avisos ainda precisam ser desconsiderados para não quebrar a conta menor
                               const mAulasContaveis = mod.aulas.filter(a => !a.startsWith("⚠️"));
                               const mdone = mAulasContaveis.filter(a => checked[`${mod.id}::${a}`]).length;
                               return (
