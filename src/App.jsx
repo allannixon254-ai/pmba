@@ -771,19 +771,7 @@ export default function StudyPlan() {
     setActiveTimerInfo(null);
   };
 
-  // Salva o tempo decorrido, persiste no armazenamento local e encerra a sessão da matéria ativa
-  const salvarTempo = (id) => {
-    let nt = { ...subjectTimers };
-    if (activeTimerInfo && activeTimerInfo.id === id) {
-      const elapsed = Math.floor((Date.now() - activeTimerInfo.startedAt) / 1000);
-      nt[id] = (nt[id] || 0) + elapsed;
-      setActiveTimerInfo(null);
-    }
-    setSubjectTimers(nt);
-    saveTimers(nt);
-  };
-
-  const finalizar = () => pausar();
+  const finalizar = () => pausar(); // salva e para
 
   const zerar = (id) => {
     if (activeTimerInfo?.id === id) setActiveTimerInfo(null);
@@ -993,16 +981,14 @@ export default function StudyPlan() {
                       )}
                       {isActive && (
                         <>
-                          <Btn onClick={pausar} color="#d97706">⏸ Pausar</Btn>
-                          <Btn onClick={() => salvarTempo(s.id)} color="#2563eb">💾 Salvar</Btn>
+                          <Btn onClick={pausar}   color="#d97706">⏸ Pausar</Btn>
                           <Btn onClick={finalizar} color="#dc2626">⏹ Finalizar</Btn>
                         </>
                       )}
                       {isPaused && (
                         <>
                           <Btn onClick={() => iniciar(s.id)} color="#16a34a">▶ Retomar</Btn>
-                          <Btn onClick={() => salvarTempo(s.id)} color="#2563eb">💾 Salvar</Btn>
-                          <Btn onClick={() => zerar(s.id)} color="#475569">🔄 Zerar</Btn>
+                          <Btn onClick={() => zerar(s.id)}   color="#475569">🔄 Zerar</Btn>
                         </>
                       )}
                     </div>
@@ -1081,6 +1067,8 @@ export default function StudyPlan() {
                         const isActive = activeTimerInfo?.id === sub.id;
                         const secs     = getSeconds(sub.id);
                         const isPaused = secs > 0 && !isActive;
+                        const subData  = curriculum.find(c => c.id === sub.id);
+                        const pc       = subData ? PRIORITY[subData.priority] : null;
 
                         return (
                           <div
@@ -1117,16 +1105,14 @@ export default function StudyPlan() {
                               )}
                               {isActive && (
                                 <>
-                                  <Btn small onClick={pausar} color="#d97706">⏸ Pausar</Btn>
-                                  <Btn small onClick={() => salvarTempo(sub.id)} color="#2563eb">💾 Salvar</Btn>
+                                  <Btn small onClick={pausar}   color="#d97706">⏸ Pausar</Btn>
                                   <Btn small onClick={finalizar} color="#dc2626">⏹ Finalizar</Btn>
                                 </>
                               )}
                               {isPaused && (
                                 <>
                                   <Btn small onClick={() => iniciar(sub.id)} color="#16a34a">▶ Retomar</Btn>
-                                  <Btn small onClick={() => salvarTempo(sub.id)} color="#2563eb">💾 Salvar</Btn>
-                                  <Btn small onClick={() => zerar(sub.id)} color="#475569">🔄 Zerar</Btn>
+                                  <Btn small onClick={() => zerar(sub.id)}   color="#475569">🔄 Zerar</Btn>
                                 </>
                               )}
                             </div>
@@ -1142,7 +1128,7 @@ export default function StudyPlan() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            TAB — MATÉRIAS
+            TAB — MATÉRIAS (código original preservado)
         ══════════════════════════════════════════════════════════════ */}
         {tab === "materias" && (
           <div>
