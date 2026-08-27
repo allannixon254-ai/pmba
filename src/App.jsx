@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const PRIORITY: Record<string, { bg: string; border: string; badge: string; text: string; label: string }> = {
+const PRIORITY = {
   max:          { bg:"#450a0a", border:"#991b1b", badge:"#dc2626", text:"#fca5a5", label:"🔴 MÁXIMA"     },
   high:         { bg:"#431407", border:"#9a3412", badge:"#ea580c", text:"#fdba74", label:"🟠 ALTA"       },
   medium_high:  { bg:"#1c1917", border:"#92400e", badge:"#d97706", text:"#fcd34d", label:"🟡 MÉDIA-ALTA" },
@@ -9,6 +9,7 @@ const PRIORITY: Record<string, { bg: string; border: string; badge: string; text
   maintenance:  { bg:"#2e1065", border:"#6b21a8", badge:"#9333ea", text:"#d8b4fe", label:"🟣 MANUTENÇÃO" },
 };
 
+// Cronograma baseado no PDF
 const CRONOGRAMA = [
   { dia: "Segunda", materias: "História", tempo: "1h30", foco: "PMBA" },
   { dia: "Terça", materias: "Matemática", tempo: "1h30", foco: "PMBA" },
@@ -17,6 +18,7 @@ const CRONOGRAMA = [
   { dia: "Sexta", materias: "Português + Informática", tempo: "45min cada", foco: "Manutenção" }
 ];
 
+// Matérias disponíveis para o cronômetro
 const MATERIAS_TIMER = [
   { id: "HIS", name: "História" },
   { id: "MAT", name: "Matemática" },
@@ -29,7 +31,9 @@ const MATERIAS_TIMER = [
   { id: "POR", name: "Português" },
   { id: "INF", name: "Informática" }
 ];
+
 const curriculum = [
+  // ─── BLOCO 1 ──────────────────────────────────────────────────────
   { bloco:1, id:"historia", name:"História do Brasil e da Bahia", priority:"max", emoji:"🏛️",
     courses:[
       { name:"PM-BA-História_do_Brasil_e_da_Bahia-2023", type:"🎬 Vídeo", modules:[
@@ -62,6 +66,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:1, id:"geografia", name:"Geografia do Brasil", priority:"max", emoji:"🗺️",
     courses:[
       { name:"PM-BA-Geografia_do_Brasil-2023", type:"🎬 Vídeo", modules:[
@@ -136,6 +141,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:1, id:"atualidades", name:"Atualidades", priority:"max", emoji:"🌐",
     courses:[
       { name:"PM-BA-Atualidades-2023", type:"🎬 Vídeo", modules:[
@@ -208,6 +214,8 @@ const curriculum = [
       ]},
     ]
   },
+
+  // ─── BLOCO 2 ──────────────────────────────────────────────────────
   { bloco:2, id:"constitucional", name:"Direito Constitucional", priority:"high", emoji:"⚖️",
     courses:[
       { name:"PM-BA-Direito_Constitucional-2023", type:"🎬 Vídeo", modules:[
@@ -279,6 +287,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:2, id:"dh", name:"Direitos Humanos", priority:"high", emoji:"🕊️",
     courses:[
       { name:"PM-BA-Direitos_Humanos-2023", type:"🎬 Vídeo", modules:[
@@ -307,6 +316,8 @@ const curriculum = [
       ]},
     ]
   },
+
+  // ─── BLOCO 3 ──────────────────────────────────────────────────────
   { bloco:3, id:"matematica", name:"Matemática", priority:"max", emoji:"🔢",
     courses:[
       { name:"PM-BA-Matemática-2023", type:"🎬 Vídeo", modules:[
@@ -445,6 +456,8 @@ const curriculum = [
       ]},
     ]
   },
+
+  // ─── BLOCO 4 ──────────────────────────────────────────────────────
   { bloco:4, id:"penal", name:"Direito Penal", priority:"medium_high", emoji:"🔍",
     courses:[
       { name:"PM-BA-Direito_Penal-2023", type:"🎬 Vídeo", modules:[
@@ -502,6 +515,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:4, id:"penal_militar", name:"Direito Penal Militar", priority:"medium_high", emoji:"🎖️",
     courses:[
       { name:"PM-BA-Direito_Penal_Militar-2023", type:"🎬 Vídeo", modules:[
@@ -533,6 +547,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:4, id:"administrativo", name:"Direito Administrativo", priority:"medium", emoji:"🏢",
     courses:[
       { name:"PM-BA-Direito_Administrativo-2023", type:"🎬 Vídeo", modules:[
@@ -579,6 +594,8 @@ const curriculum = [
       ]},
     ]
   },
+
+  // ─── BLOCO 5 ──────────────────────────────────────────────────────
   { bloco:5, id:"portugues", name:"Língua Portuguesa", priority:"maintenance", emoji:"📝",
     courses:[
       { name:"PM-BA-Língua_Portuguesa-2023", type:"🎬 Vídeo", modules:[
@@ -619,6 +636,7 @@ const curriculum = [
       ]},
     ]
   },
+
   { bloco:5, id:"informatica", name:"Informática", priority:"maintenance", emoji:"💻",
     courses:[
       { name:"PM-BA-Informática-2023", type:"🎬 Vídeo", modules:[
@@ -682,6 +700,8 @@ const curriculum = [
       ]},
     ]
   },
+
+  // ─── BLOCO 6 ──────────────────────────────────────────────────────
   { bloco:6, id:"igualdade", name:"Igualdade Racial e de Gênero (Lei 12.288)", priority:"low", emoji:"🤝",
     courses:[
       { name:"Passo Estratégico de Igualdade Racial e de Gênero-2023", type:"📄 PDF", modules:[
@@ -693,7 +713,7 @@ const curriculum = [
   },
 ];
 
-const BLOCO_NAMES: Record<number, string> = {
+const BLOCO_NAMES = {
   1:"🗓️ Bloco 1 — História + Geografia + Atualidades",
   2:"🗓️ Bloco 2 — Direito Constitucional + Direitos Humanos",
   3:"🗓️ Bloco 3 — Matemática (prioridade máxima!)",
@@ -702,16 +722,17 @@ const BLOCO_NAMES: Record<number, string> = {
   6:"🗓️ Bloco 6 — Legislação Complementar",
 };
 
-export default function App() {
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+export default function StudyPlan() {
+  const [checked, setChecked] = useState({});
   const [loaded, setLoaded] = useState(false);
-  const [openSubjects, setOpenSubjects] = useState<Record<string, boolean>>({});
-  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
+  const [openSubjects, setOpenSubjects] = useState({});
+  const [openModules, setOpenModules] = useState({});
 
-  const [activeSubject, setActiveSubject] = useState<string | null>(null);
+  // Estados do Cronômetro
+  const [activeSubject, setActiveSubject] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
-  const [totalTimes, setTotalTimes] = useState<Record<string, number>>({});
+  const [totalTimes, setTotalTimes] = useState({});
 
   useEffect(() => {
     try {
@@ -724,8 +745,9 @@ export default function App() {
     setLoaded(true);
   }, []);
 
+  // Lógica do Timer
   useEffect(() => {
-    let interval: any;
+    let interval;
     if (isRunning) {
       interval = setInterval(() => {
         setSessionTime((prev) => prev + 1);
@@ -734,14 +756,15 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  const toggle = (key: string) => {
+  const toggle = (key) => {
     const n = { ...checked, [key]: !checked[key] };
     setChecked(n);
     try { localStorage.setItem("pmba-v2", JSON.stringify(n)); } catch (e) {}
   };
-  const toggleSubject = (id: string) => setOpenSubjects(s => ({ ...s, [id]: !s[id] }));
-  const toggleModule = (id: string) => setOpenModules(m => ({ ...m, [id]: !m[id] }));
+  const toggleSubject = (id) => setOpenSubjects(s => ({ ...s, [id]: !s[id] }));
+  const toggleModule = (id) => setOpenModules(m => ({ ...m, [id]: !m[id] }));
 
+  // Funções de Controle do Timer
   const handleStartPause = () => {
     if (!activeSubject) {
       alert("Selecione uma matéria primeiro!");
@@ -769,7 +792,7 @@ export default function App() {
     setSessionTime(0);
   };
 
-  const formatTime = (totalSeconds: number) => {
+  const formatTime = (totalSeconds) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
     const s = totalSeconds % 60;
@@ -780,6 +803,7 @@ export default function App() {
 
   if (!loaded) return null;
 
+  // Global stats - IGNORANDO OS AVISOS (⚠️) PARA A CONTAGEM
   let total = 0, done = 0;
   curriculum.forEach(s => s.courses.forEach(c => c.modules.forEach(m =>
     m.aulas.forEach(a => {
@@ -791,7 +815,8 @@ export default function App() {
   )));
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  const subjectStats: Record<string, { t: number; d: number }> = {};
+  // Per-subject stats
+  const subjectStats = {};
   curriculum.forEach(s => {
     let st = 0, sd = 0;
     s.courses.forEach(c => c.modules.forEach(m =>
@@ -862,7 +887,7 @@ export default function App() {
               <div 
                 key={mat.id}
                 onClick={() => {
-                  if (isRunning) handleSave();
+                  if (isRunning) handleSave(); // Salva antes de trocar
                   setActiveSubject(mat.id);
                 }}
                 className="subject-pill"
@@ -946,6 +971,7 @@ export default function App() {
                     background: pc.bg, border: `1px solid ${pc.border}`,
                     borderRadius: 12, marginBottom: 12, overflow: "hidden"
                   }}>
+                    {/* Subject header */}
                     <div
                       onClick={() => toggleSubject(s.id)}
                       style={{
